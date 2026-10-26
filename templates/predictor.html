@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}AI Pass/Fail Predictor Playground{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Machine Learning Predictor Playground</h1>
+        <p>Simulate academic performance scenarios and calculate pass probability in real-time.</p>
+    </div>
+    {% if current_user.role == 'admin' %}
+    <div class="header-actions">
+        <a href="{{ url_for('add_student') }}" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+            Enroll Official Student
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 28px;" data-live-predictor>
+    
+    <!-- Left Column: Input Sliders & Number Controls -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Performance Parameters</h2>
+            <span class="badge" style="background: var(--primary-light); color: var(--primary);">Live Interactive</span>
+        </div>
+
+        <form id="predictor-form" method="POST" action="{{ url_for('predictor') }}">
+            <!-- Quick Preset Scenarios -->
+            <div style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 20px;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: var(--gray-700); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                    <span>⚡ 1-Click Simulation Scenarios:</span>
+                </div>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="setPredictorScenario(7.5, 92, 85, 88)" style="font-size: 0.8rem; padding: 5px 10px;">
+                        🌟 High Achiever
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="setPredictorScenario(4.0, 76, 62, 68)" style="font-size: 0.8rem; padding: 5px 10px;">
+                        ⚖️ Average Pass
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="setPredictorScenario(1.5, 52, 42, 45)" style="font-size: 0.8rem; padding: 5px 10px;">
+                        ⚠️ At-Risk Fail
+                    </button>
+                </div>
+            </div>
+
+            <!-- Study Hours -->
+            <div class="input-slider-group">
+                <div class="slider-header">
+                    <div>
+                        <label class="form-label" style="margin-bottom: 2px;">Daily Study Hours</label>
+                        <div class="sub">Recommended: 4.0h to 8.0h</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="number" min="0" max="24" step="0.5" value="{{ inputs.study_hours }}" style="width: 70px; padding: 4px 8px; font-size: 0.85rem; border: 1px solid var(--gray-300); border-radius: 6px; text-align: center;">
+                        <span class="slider-val-box" id="val-study">{{ inputs.study_hours }}h</span>
+                    </div>
+                </div>
+                <input 
+                    type="range" 
+                    id="study_hours" 
+                    name="study_hours" 
+                    min="0" 
+                    max="24" 
+                    step="0.5" 
+                    value="{{ inputs.study_hours }}" 
+                    data-unit="h"
+                >
+            </div>
+
+            <!-- Attendance -->
+            <div class="input-slider-group">
+                <div class="slider-header">
+                    <div>
+                        <label class="form-label" style="margin-bottom: 2px;">Attendance Rate</label>
+                        <div class="sub">University threshold: 75%</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="number" min="0" max="100" step="1" value="{{ inputs.attendance }}" style="width: 70px; padding: 4px 8px; font-size: 0.85rem; border: 1px solid var(--gray-300); border-radius: 6px; text-align: center;">
+                        <span class="slider-val-box" id="val-att">{{ inputs.attendance }}%</span>
+                    </div>
+                </div>
+                <input 
+                    type="range" 
+                    id="attendance" 
+                    name="attendance" 
+                    min="0" 
+                    max="100" 
+                    step="1" 
+                    value="{{ inputs.attendance }}" 
+                    data-unit="%"
+                >
+            </div>
+
+            <!-- Previous Marks -->
+            <div class="input-slider-group">
+                <div class="slider-header">
+                    <div>
+                        <label class="form-label" style="margin-bottom: 2px;">Previous Exam Marks</label>
+                        <div class="sub">Prior academic track record (0-100)</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="number" min="0" max="100" step="1" value="{{ inputs.previous_marks }}" style="width: 70px; padding: 4px 8px; font-size: 0.85rem; border: 1px solid var(--gray-300); border-radius: 6px; text-align: center;">
+                        <span class="slider-val-box" id="val-prev">{{ inputs.previous_marks }}</span>
+                    </div>
+                </div>
+                <input 
+                    type="range" 
+                    id="previous_marks" 
+                    name="previous_marks" 
+                    min="0" 
+                    max="100" 
+                    step="1" 
+                    value="{{ inputs.previous_marks }}"
+                >
+            </div>
+
+            <!-- Assignment Marks -->
+            <div class="input-slider-group">
+                <div class="slider-header">
+                    <div>
+                        <label class="form-label" style="margin-bottom: 2px;">Assignment Marks</label>
+                        <div class="sub">Continuous assessment & projects (0-100)</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="number" min="0" max="100" step="1" value="{{ inputs.assignment_marks }}" style="width: 70px; padding: 4px 8px; font-size: 0.85rem; border: 1px solid var(--gray-300); border-radius: 6px; text-align: center;">
+                        <span class="slider-val-box" id="val-assign">{{ inputs.assignment_marks }}</span>
+                    </div>
+                </div>
+                <input 
+                    type="range" 
+                    id="assignment_marks" 
+                    name="assignment_marks" 
+                    min="0" 
+                    max="100" 
+                    step="1" 
+                    value="{{ inputs.assignment_marks }}"
+                >
+            </div>
+
+            <button type="submit" class="btn btn-secondary btn-block" style="margin-top: 14px;">
+                🔄 Recalculate Model Prediction
+            </button>
+            <p style="font-size: 0.8rem; color: var(--gray-500); margin-top: 8px; text-align: center;">
+                💡 <em>Sliders ko slide karein ya direct box me likhein — Machine learning model foran naya result show karega!</em>
+            </p>
+        </form>
+    </div>
+
+    <!-- Right Column: Prediction Result Display -->
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div class="card-header">
+                <h2>Model Inference Outcome</h2>
+                <span class="badge badge-pass">AI Pipeline Active</span>
+            </div>
+
+            {% set is_fail = (result and result.status == 'Fail') %}
+            {% set proba = result.pass_probability if (result and result.pass_probability is not none) else 98.4 %}
+            <div id="result-card" class="predict-result-card {{ 'fail' if is_fail else 'pass' }}" style="padding: 32px 24px;">
+                
+                <div id="result-status-badge" class="predict-badge-large {{ 'fail' if is_fail else 'pass' }}">
+                    {% if is_fail %}
+                        ✗ PREDICTED: FAIL
+                    {% else %}
+                        ✓ PREDICTED: PASS
+                    {% endif %}
+                </div>
+
+                <div class="meter-wrapper" style="margin: 24px 0 16px;">
+                    <div class="meter-bar-track" style="height: 18px;">
+                        <div 
+                            id="result-proba-fill" 
+                            class="meter-bar-fill {{ 'fail' if is_fail else 'pass' }}" 
+                            style="width: {{ proba }}%;"
+                        ></div>
+                    </div>
+                    <div class="meter-legend" style="margin-top: 10px; font-size: 0.9rem;">
+                        <span id="result-proba-text">
+                            <strong>{{ proba }}%</strong> Pass Probability
+                        </span>
+                        <span id="result-risk-text" style="color: var(--primary); font-weight: 700;">
+                            {{ result.risk_level if result else 'Low Academic Risk' }}
+                        </span>
+                    </div>
+                </div>
+
+                <div id="result-advice-text" class="ai-recommendation-box">
+                    {{ result.recommendation if result else 'Excellent academic metrics profile! This combination demonstrates consistent dedication with very high confidence of successfully passing.' }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Explanatory note -->
+        <div style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 16px; margin-top: 20px; font-size: 0.85rem; color: var(--gray-600);">
+            <strong>💡 How the Machine Learning Model works:</strong>
+            Our trained Scikit-Learn Logistic Regression Pipeline standardizes input variables using StandardScaler and models the non-linear relationship between attendance, daily study discipline, and coursework performance to project exam success probability.
+        </div>
+    </div>
+
+</div>
+{% endblock %}

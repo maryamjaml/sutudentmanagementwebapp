@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+{% block title %}My Student Performance Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Welcome, {{ current_user.name }}! 👋</h1>
+        <p>Access your official academic standing and explore machine learning predictions.</p>
+    </div>
+    <div class="header-actions">
+        {% if student %}
+            <a href="{{ url_for('student_export_excel') }}" class="btn btn-excel" title="Download Official Academic Prediction in Excel format">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                Export Prediction (Excel)
+            </a>
+            <a href="{{ url_for('student_export_csv') }}" class="btn btn-secondary" title="Download Official Academic Prediction in CSV format">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                Export CSV
+            </a>
+        {% endif %}
+        <a href="{{ url_for('predictor') }}" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
+            Full AI Simulator
+        </a>
+    </div>
+</div>
+
+<!-- Official Academic Standing Section -->
+{% if student %}
+    <div class="card" style="margin-bottom: 28px; position: relative; overflow: hidden; border-left: 6px solid {% if student.predicted_status == 'Pass' %}var(--success){% else %}var(--danger){% endif %};">
+        <div class="card-header" style="margin-bottom: 12px; border-bottom: none; padding-bottom: 0;">
+            <div>
+                <span class="role-tag student" style="font-size: 0.75rem;">Official Academic Standing</span>
+                <h2 style="font-size: 1.45rem; margin-top: 6px;">
+                    Roll Number: <code>{{ student.roll_number if student.roll_number else 'Enrolled' }}</code>
+                </h2>
+            </div>
+
+            {% if student.predicted_status == 'Pass' %}
+                <div class="predict-badge-large pass" style="font-size: 1.25rem; margin-bottom: 0; padding: 8px 20px;">
+                    ✓ FORECAST: PASS
+                </div>
+            {% else %}
+                <div class="predict-badge-large fail" style="font-size: 1.25rem; margin-bottom: 0; padding: 8px 20px;">
+                    ✗ FORECAST: FAIL (AT-RISK)
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Pass Probability Bar -->
+        <div class="meter-wrapper" style="margin: 16px 0;">
+            <div class="meter-bar-track" style="height: 14px;">
+                <div 
+                    class="meter-bar-fill {% if student.predicted_status == 'Pass' %}pass{% else %}fail{% endif %}" 
+                    style="width: {{ student.pass_probability if student.pass_probability else 85 }}%;"
+                ></div>
+            </div>
+            <div class="meter-legend">
+                <span><strong>{{ student.pass_probability if student.pass_probability else 85 }}%</strong> Projected Pass Likelihood</span>
+                <span style="color: var(--primary); font-weight: 600;">{{ student.risk_level if student.risk_level else 'Evaluated' }}</span>
+            </div>
+        </div>
+
+        <!-- 4 Metric Cards -->
+        <div class="metric-grid">
+            <div class="metric-box">
+                <div class="metric-box-title">Daily Study Time</div>
+                <div class="metric-box-val">{{ student.Study_Hours or 0 }} hrs</div>
+                <div class="metric-bar-bg">
+                    <div class="metric-bar-cur" style="width: {{ ((student.Study_Hours or 0) / 12 * 100)|round }}%;"></div>
+                </div>
+            </div>
+
+            <div class="metric-box">
+                <div class="metric-box-title">Lecture Attendance</div>
+                <div class="metric-box-val">{{ student.Attendance or 0 }}%</div>
+                <div class="metric-bar-bg">
+                    <div class="metric-bar-cur" style="width: {{ student.Attendance or 0 }}%; background: {% if (student.Attendance or 0) >= 75 %}var(--success){% else %}var(--danger){% endif %};"></div>
+                </div>
+            </div>
+
+            <div class="metric-box">
+                <div class="metric-box-title">Previous Marks</div>
+                <div class="metric-box-val">{{ student.Previous_Marks or 0 }} / 100</div>
+                <div class="metric-bar-bg">
+                    <div class="metric-bar-cur" style="width: {{ student.Previous_Marks or 0 }}%;"></div>
+                </div>
+            </div>
+
+            <div class="metric-box">
+                <div class="metric-box-title">Assignment Marks</div>
+                <div class="metric-box-val">{{ student.Assignment_Marks or 0 }} / 100</div>
+                <div class="metric-bar-bg">
+                    <div class="metric-bar-cur" style="width: {{ student.Assignment_Marks or 0 }}%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Academic Advice Box -->
+        <div class="ai-recommendation-box" style="margin-top: 20px;">
+            <div style="font-weight: 700; color: var(--gray-900); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <span>🤖 AI Advisor Recommendation:</span>
+            </div>
+            {{ student.recommendation if student.recommendation else 'Maintain consistent review routines and sustain attendance above 75% to maximize your examination success.' }}
+        </div>
+
+        <!-- Download Prediction Report Action Bar -->
+        <div style="display: flex; gap: 12px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--gray-100); flex-wrap: wrap; align-items: center; justify-content: space-between;">
+            <div style="font-size: 0.9rem; font-weight: 600; color: var(--gray-700); display: flex; align-items: center; gap: 6px;">
+                <span>📑 Download Official Academic Prediction Report:</span>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="{{ url_for('student_export_excel') }}" class="btn btn-excel btn-sm" style="padding: 7px 16px; font-weight: 600;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    Download Excel (.xlsx)
+                </a>
+                <a href="{{ url_for('student_export_csv') }}" class="btn btn-secondary btn-sm" style="padding: 7px 16px; font-weight: 600;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    Download CSV
+                </a>
+            </div>
+        </div>
+    </div>
+
+{% else %}
+    <!-- When student is not yet officially enrolled by faculty -->
+    <div class="card" style="margin-bottom: 28px; background: #eff6ff; border: 1.5px dashed #93c5fd; text-align: center; padding: 36px 24px;">
+        <div style="font-size: 2.2rem; margin-bottom: 10px;">📋</div>
+        <h3 style="color: #1e3a8a; margin-bottom: 8px;">Awaiting Official Faculty Enrollment</h3>
+        <p style="color: #3b82f6; max-width: 580px; margin: 0 auto 16px; font-size: 0.95rem;">
+            Your faculty has not yet assigned official midterm grades to your portal email (<strong>{{ current_user.email }}</strong>). You can still test your performance using the AI simulator below!
+        </p>
+    </div>
+{% endif %}
+
+<!-- Student Self-Assessment Simulator -->
+<div class="card" data-live-predictor>
+    <div class="card-header">
+        <div>
+            <h2>What-If Pass/Fail Simulator</h2>
+            <p style="font-size: 0.88rem; color: var(--gray-500); margin-top: 4px;">
+                Curious what happens if you increase study hours or attendance? Slide to test your predicted results:
+            </p>
+        </div>
+        <span class="badge" style="background: var(--primary-light); color: var(--primary);">Instant Simulation</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+        
+        <!-- Controls -->
+        <div>
+            <!-- Quick Preset Scenarios -->
+            <div style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 20px;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: var(--gray-700); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                    <span>⚡ Quick Test Scenarios (1-Click):</span>
+                </div>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="setPredictorScenario(7.5, 92, 85, 88)" style="font-size: 0.8rem; padding: 5px 10px;">
+                        🌟 High Achiever
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="setPredictorScenario(4.0, 76, 62, 68)" style="font-size: 0.8rem; padding: 5px 10px;">
+                        ⚖️ Average Pass
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="setPredictorScenario(1.5, 52, 42, 45)" style="font-size: 0.8rem; padding: 5px 10px;">
+                        ⚠️ At-Risk Fail
+                    </button>
+                    {% if student %}
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="setPredictorScenario({{ student.Study_Hours or 5.0 }}, {{ student.Attendance or 80.0 }}, {{ student.Previous_Marks or 70.0 }}, {{ student.Assignment_Marks or 75.0 }})" style="font-size: 0.8rem; padding: 5px 10px;">
+                        🔄 Reset to My Official
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Daily Study Hours -->
+            <div class="input-slider-group">
+                <div class="slider-header">
+                    <label class="form-label" style="margin-bottom: 0;">Daily Study Hours</label>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="number" min="0" max="24" step="0.5" value="5.0" style="width: 70px; padding: 4px 8px; font-size: 0.85rem; border: 1px solid var(--gray-300); border-radius: 6px; text-align: center;">
+                        <span class="slider-val-box" id="val-study">5.0h</span>
+                    </div>
+                </div>
+                <input type="range" id="study_hours" min="0" max="24" step="0.5" value="5.0" data-unit="h">
+            </div>
+
+            <!-- Target Attendance Rate -->
+            <div class="input-slider-group">
+                <div class="slider-header">
+                    <label class="form-label" style="margin-bottom: 0;">Target Attendance Rate (%)</label>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="number" min="0" max="100" step="1" value="80" style="width: 70px; padding: 4px 8px; font-size: 0.85rem; border: 1px solid var(--gray-300); border-radius: 6px; text-align: center;">
+                        <span class="slider-val-box" id="val-att">80%</span>
+                    </div>
+                </div>
+                <input type="range" id="attendance" min="0" max="100" step="1" value="80" data-unit="%">
+            </div>
+
+            <!-- Previous Exam Score -->
+            <div class="input-slider-group">
+                <div class="slider-header">
+                    <label class="form-label" style="margin-bottom: 0;">Previous Exam Score (0-100)</label>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="number" min="0" max="100" step="1" value="70" style="width: 70px; padding: 4px 8px; font-size: 0.85rem; border: 1px solid var(--gray-300); border-radius: 6px; text-align: center;">
+                        <span class="slider-val-box" id="val-prev">70</span>
+                    </div>
+                </div>
+                <input type="range" id="previous_marks" min="0" max="100" step="1" value="70">
+            </div>
+
+            <!-- Assignment Score -->
+            <div class="input-slider-group">
+                <div class="slider-header">
+                    <label class="form-label" style="margin-bottom: 0;">Assignment Score (0-100)</label>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="number" min="0" max="100" step="1" value="75" style="width: 70px; padding: 4px 8px; font-size: 0.85rem; border: 1px solid var(--gray-300); border-radius: 6px; text-align: center;">
+                        <span class="slider-val-box" id="val-assign">75</span>
+                    </div>
+                </div>
+                <input type="range" id="assignment_marks" min="0" max="100" step="1" value="75">
+            </div>
+
+            <button type="button" class="btn btn-secondary btn-block" onclick="triggerManualPrediction()" style="margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                🔄 Recalculate Live Prediction
+            </button>
+            <p style="font-size: 0.8rem; color: var(--gray-500); margin-top: 8px; text-align: center;">
+                💡 <em>Sliders ko move karein ya numbers change karein, result foran live update ho jata hai!</em>
+            </p>
+        </div>
+
+        <!-- Live Prediction Card -->
+        <div style="display: flex; flex-direction: column; justify-content: center;">
+            <div id="result-card" class="predict-result-card pass" style="padding: 28px;">
+                <div id="result-status-badge" class="predict-badge-large pass" style="font-size: 1.35rem;">
+                    ✓ PREDICTED: PASS
+                </div>
+
+                <div class="meter-wrapper">
+                    <div class="meter-bar-track">
+                        <div id="result-proba-fill" class="meter-bar-fill pass" style="width: 98%;"></div>
+                    </div>
+                    <div class="meter-legend">
+                        <span id="result-proba-text">98% Pass Likelihood</span>
+                        <span id="result-risk-text" style="color: var(--primary);">Low Academic Risk</span>
+                    </div>
+                </div>
+
+                <div id="result-advice-text" class="ai-recommendation-box" style="font-size: 0.85rem;">
+                    With this study habit profile, your projected outcome is a solid pass.
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

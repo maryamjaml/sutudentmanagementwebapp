@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | EduPredict AI</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-page">
+
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="logo-badge">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                    <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                </svg>
+            </div>
+            <h1>Welcome Back</h1>
+            <p>Sign in to access your student intelligence dashboard</p>
+        </div>
+
+        <!-- Flash messages inside auth card -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-container">
+                    {% for category, message in messages %}
+                        <div class="flash-alert {{ category }}">
+                            <span>{{ message }}</span>
+                            <button class="flash-close-btn" onclick="this.parentElement.remove();">&times;</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Quick 1-Click Student Demo Filler -->
+        <div class="demo-account-pills">
+            <div class="title">Student Portal Quick Access</div>
+            <div style="display: flex; justify-content: center; gap: 8px;">
+                <button type="button" class="demo-pill-btn" onclick="fillDemoAccount('student')">
+                    🎓 Student Demo (Ali Khan)
+                </button>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="form-group">
+                <label class="form-label" for="login-email">Email Address</label>
+                <input 
+                    type="email" 
+                    id="login-email" 
+                    name="email" 
+                    class="form-control" 
+                    placeholder="name@university.edu" 
+                    required 
+                    autocomplete="email"
+                >
+            </div>
+
+            <div class="form-group">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label class="form-label" for="login-password" style="margin-bottom: 0;">Password</label>
+                </div>
+                <input 
+                    type="password" 
+                    id="login-password" 
+                    name="password" 
+                    class="form-control" 
+                    placeholder="Enter your password" 
+                    required 
+                    autocomplete="current-password"
+                >
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 24px;">
+                Sign In to Portal
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 24px; font-size: 0.9rem; color: var(--gray-500);">
+            Don't have an account? 
+            <a href="{{ url_for('signup') }}" style="font-weight: 600; color: var(--primary);">Sign Up</a>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block title %}Admin Intelligence Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Executive Dashboard</h1>
+        <p>Student academic success analytics & predictive machine learning insights.</p>
+    </div>
+    <div class="header-actions">
+        <a href="{{ url_for('predictor') }}" class="btn btn-secondary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
+            AI Sandbox
+        </a>
+        <a href="{{ url_for('add_student') }}" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+            Add Student & Predict
+        </a>
+    </div>
+</div>
+
+<!-- Key Performance Indicators -->
+<div class="stats-grid">
+    <div class="stat-card blue">
+        <div class="stat-info">
+            <div class="stat-label">Total Enrolled</div>
+            <div class="stat-value">{{ total_students }}</div>
+            <div class="stat-sub">Active student cohort</div>
+        </div>
+        <div class="stat-icon">👥</div>
+    </div>
+
+    <div class="stat-card green">
+        <div class="stat-info">
+            <div class="stat-label">Predicted Pass</div>
+            <div class="stat-value">{{ pass_count }}</div>
+            <div class="stat-sub">Pass Rate: <strong>{{ pass_rate }}%</strong></div>
+        </div>
+        <div class="stat-icon">🎉</div>
+    </div>
+
+    <div class="stat-card red">
+        <div class="stat-info">
+            <div class="stat-label">At-Risk (Fail)</div>
+            <div class="stat-value">{{ fail_count }}</div>
+            <div class="stat-sub">Requires academic attention</div>
+        </div>
+        <div class="stat-icon">⚠️</div>
+    </div>
+
+    <div class="stat-card purple">
+        <div class="stat-info">
+            <div class="stat-label">Avg Attendance</div>
+            <div class="stat-value">{{ avg_attendance }}%</div>
+            <div class="stat-sub">Avg Marks: {{ avg_marks }}</div>
+        </div>
+        <div class="stat-icon">📈</div>
+    </div>
+</div>
+
+<!-- Main 2-Column Section: Live ML Predictor + Recent Students -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 24px; margin-bottom: 28px;">
+
+    <!-- Interactive Live Prediction Sandbox -->
+    <div class="card" data-live-predictor>
+        <div class="card-header">
+            <div>
+                <h2>Quick AI Predictor</h2>
+                <p style="font-size: 0.85rem; color: var(--gray-500); margin-top: 4px;">Adjust parameters below to test instant ML outcome.</p>
+            </div>
+            <span class="badge" style="background: #eef2ff; color: var(--primary);">Real-Time ML</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="input-slider-group">
+                <div class="slider-header">
+                    <span style="font-size: 0.82rem; font-weight: 600;">Study Hours</span>
+                    <span class="slider-val-box" id="val-study">5.0h</span>
+                </div>
+                <input type="range" id="study_hours" min="0" max="24" step="0.5" value="5.0" data-unit="h">
+            </div>
+
+            <div class="input-slider-group">
+                <div class="slider-header">
+                    <span style="font-size: 0.82rem; font-weight: 600;">Attendance</span>
+                    <span class="slider-val-box" id="val-att">80%</span>
+                </div>
+                <input type="range" id="attendance" min="0" max="100" step="1" value="80" data-unit="%">
+            </div>
+
+            <div class="input-slider-group">
+                <div class="slider-header">
+                    <span style="font-size: 0.82rem; font-weight: 600;">Previous Marks</span>
+                    <span class="slider-val-box" id="val-prev">70</span>
+                </div>
+                <input type="range" id="previous_marks" min="0" max="100" step="1" value="70">
+            </div>
+
+            <div class="input-slider-group">
+                <div class="slider-header">
+                    <span style="font-size: 0.82rem; font-weight: 600;">Assignment Marks</span>
+                    <span class="slider-val-box" id="val-assign">75</span>
+                </div>
+                <input type="range" id="assignment_marks" min="0" max="100" step="1" value="75">
+            </div>
+        </div>
+
+        <!-- Live Prediction Result Card -->
+        <div id="result-card" class="predict-result-card pass" style="margin-top: 16px; padding: 20px;">
+            <div id="result-status-badge" class="predict-badge-large pass" style="font-size: 1.4rem; padding: 8px 18px;">
+                ✓ PREDICTED: PASS
+            </div>
+
+            <div class="meter-wrapper" style="margin: 12px 0;">
+                <div class="meter-bar-track">
+                    <div id="result-proba-fill" class="meter-bar-fill pass" style="width: 98%;"></div>
+                </div>
+                <div class="meter-legend">
+                    <span id="result-proba-text">98% Pass Probability</span>
+                    <span id="result-risk-text" style="color: var(--primary);">Low Academic Risk</span>
+                </div>
+            </div>
+
+            <div id="result-advice-text" class="ai-recommendation-box" style="margin-top: 10px; font-size: 0.85rem;">
+                Excellent study habit profile. High likelihood of passing.
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Enrolled Students Mini Table -->
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <h2>Recent Students</h2>
+                <p style="font-size: 0.85rem; color: var(--gray-500); margin-top: 4px;">Latest additions to the academic registry.</p>
+            </div>
+            <a href="{{ url_for('students') }}" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.82rem;">
+                View All
+            </a>
+        </div>
+
+        {% if recent_students %}
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Roll No</th>
+                            <th>Attendance</th>
+                            <th>Prediction</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for st in recent_students %}
+                        <tr>
+                            <td>
+                                <strong style="color: var(--gray-900);">{{ st.name }}</strong>
+                                <div style="font-size: 0.78rem; color: var(--gray-400);">{{ st.email if st.email else '' }}</div>
+                            </td>
+                            <td><code>{{ st.roll_number }}</code></td>
+                            <td>{{ st.Attendance or 0 }}%</td>
+                            <td>
+                                {% if st.predicted_status == 'Pass' %}
+                                    <span class="badge badge-pass"><span class="badge-dot"></span>Pass</span>
+                                {% else %}
+                                    <span class="badge badge-fail"><span class="badge-dot"></span>Fail</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 40px 20px; color: var(--gray-500);">
+                <p>No student records enrolled yet.</p>
+                <a href="{{ url_for('add_student') }}" class="btn btn-primary" style="margin-top: 12px;">Add First Student</a>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- System Status Badge Footer Card -->
+<div class="card" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 18px 24px;">
+    <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: #f0fdf4; color: #16a34a; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+            ⚡
+        </div>
+        <div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 2px;">ML Prediction Engine Active</h4>
+            <p style="font-size: 0.82rem; color: var(--gray-500);">Trained Logistic Regression Pipeline evaluating 4 key performance metrics.</p>
+        </div>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <span class="badge badge-pass">Model: 100% Operational</span>
+        <span class="badge badge-pass">MongoDB: Synchronized</span>
+    </div>
+</div>
+{% endblock %}

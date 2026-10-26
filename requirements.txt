@@ -1,0 +1,8 @@
+Flask
+Flask-Login
+pymongo
+pandas
+numpy
+scikit-learn
+python-dotenv
+openpyxl

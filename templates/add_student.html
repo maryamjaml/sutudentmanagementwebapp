@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}Enroll Student & Predict{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Enroll Student & Predict Outcome</h1>
+        <p>Register official student credentials and compute their pass/fail forecast.</p>
+    </div>
+    <div class="header-actions">
+        <a href="{{ url_for('students') }}" class="btn btn-secondary">
+            ← Back to Student Directory
+        </a>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 28px;" data-live-predictor>
+    
+    <!-- Student Registration Form -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Student Details & Academic Metrics</h2>
+            <span class="badge" style="background: var(--primary-light); color: var(--primary);">Official Entry</span>
+        </div>
+
+        <form method="POST" action="{{ url_for('add_student') }}">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label class="form-label" for="name">Full Name *</label>
+                    <input 
+                        type="text" 
+                        id="name" 
+                        name="name" 
+                        class="form-control" 
+                        placeholder="e.g. Maryam Jamal" 
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="roll_number">Roll Number (Unique) *</label>
+                    <input 
+                        type="text" 
+                        id="roll_number" 
+                        name="roll_number" 
+                        class="form-control" 
+                        placeholder="e.g. STD-2026-42" 
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="email">
+                    Student Portal Email
+                    <span class="sub">(Matches their login to view their result)</span>
+                </label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    class="form-control" 
+                    placeholder="student@university.edu"
+                >
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--gray-200); margin: 20px 0;">
+
+            <!-- Performance Metrics -->
+            <div class="input-slider-group">
+                <div class="slider-header">
+                    <label class="form-label" style="margin-bottom: 0;">Daily Study Hours (0–24)</label>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="number" min="0" max="24" step="0.5" value="6.0" style="width: 70px; padding: 4px 8px; font-size: 0.85rem; border: 1px solid var(--gray-300); border-radius: 6px; text-align: center;">
+                        <span class="slider-val-box" id="val-study">6.0h</span>
+                    </div>
+                </div>
+                <input 
+                    type="range" 
+                    id="study_hours" 
+                    name="study_hours" 
+                    min="0" 
+                    max="24" 
+                    step="0.5" 
+                    value="6.0" 
+                    data-unit="h"
+                >
+            </div>
+
+            <div class="input-slider-group">
+                <div class="slider-header">
+                    <label class="form-label" style="margin-bottom: 0;">Attendance Percentage (0–100%)</label>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="number" min="0" max="100" step="1" value="85" style="width: 70px; padding: 4px 8px; font-size: 0.85rem; border: 1px solid var(--gray-300); border-radius: 6px; text-align: center;">
+                        <span class="slider-val-box" id="val-att">85%</span>
+                    </div>
+                </div>
+                <input 
+                    type="range" 
+                    id="attendance" 
+                    name="attendance" 
+                    min="0" 
+                    max="100" 
+                    step="1" 
+                    value="85" 
+                    data-unit="%"
+                >
+            </div>
+
+            <div class="input-slider-group">
+                <div class="slider-header">
+                    <label class="form-label" style="margin-bottom: 0;">Previous Exam Marks (0–100)</label>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="number" min="0" max="100" step="1" value="75" style="width: 70px; padding: 4px 8px; font-size: 0.85rem; border: 1px solid var(--gray-300); border-radius: 6px; text-align: center;">
+                        <span class="slider-val-box" id="val-prev">75</span>
+                    </div>
+                </div>
+                <input 
+                    type="range" 
+                    id="previous_marks" 
+                    name="previous_marks" 
+                    min="0" 
+                    max="100" 
+                    step="1" 
+                    value="75"
+                >
+            </div>
+
+            <div class="input-slider-group">
+                <div class="slider-header">
+                    <label class="form-label" style="margin-bottom: 0;">Assignment / Project Marks (0–100)</label>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="number" min="0" max="100" step="1" value="80" style="width: 70px; padding: 4px 8px; font-size: 0.85rem; border: 1px solid var(--gray-300); border-radius: 6px; text-align: center;">
+                        <span class="slider-val-box" id="val-assign">80</span>
+                    </div>
+                </div>
+                <input 
+                    type="range" 
+                    id="assignment_marks" 
+                    name="assignment_marks" 
+                    min="0" 
+                    max="100" 
+                    step="1" 
+                    value="80"
+                >
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 20px;">
+                💾 Save Student Record & Predict Outcome
+            </button>
+        </form>
+    </div>
+
+    <!-- Live Preview Card of Predicted Status -->
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div class="card-header">
+                <h2>Real-Time Prediction Preview</h2>
+                <span class="badge badge-pass">ML Forecast</span>
+            </div>
+
+            <p style="font-size: 0.88rem; color: var(--gray-500); margin-bottom: 18px;">
+                As you adjust metrics on the left, the ML Pipeline model computes the expected outcome instantly:
+            </p>
+
+            <div id="result-card" class="predict-result-card pass">
+                <div id="result-status-badge" class="predict-badge-large pass">
+                    ✓ PREDICTED: PASS
+                </div>
+
+                <div class="meter-wrapper">
+                    <div class="meter-bar-track">
+                        <div id="result-proba-fill" class="meter-bar-fill pass" style="width: 98%;"></div>
+                    </div>
+                    <div class="meter-legend">
+                        <span id="result-proba-text">98% Pass Probability</span>
+                        <span id="result-risk-text" style="color: var(--primary);">Low Academic Risk</span>
+                    </div>
+                </div>
+
+                <div id="result-advice-text" class="ai-recommendation-box">
+                    Strong academic standing. Projected to pass successfully.
+                </div>
+            </div>
+        </div>
+
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-md); padding: 16px; margin-top: 20px; font-size: 0.85rem; color: #1e40af;">
+            <strong>📌 Student Linking Note:</strong>
+            If you provide the student's registered email address, they will immediately be able to view their official pass/fail forecast and academic benchmarks when logging into their student dashboard.
+        </div>
+    </div>
+
+</div>
+{% endblock %}

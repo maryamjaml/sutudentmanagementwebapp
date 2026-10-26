@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Student Performance AI{% endblock %} | EduPredict</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{% if current_user.is_authenticated %}{% if current_user.role == 'admin' %}{{ url_for('index') }}{% else %}{{ url_for('student_dashboard') }}{% endif %}{% else %}{{ url_for('login') }}{% endif %}" class="nav-brand">
+                <div class="brand-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                        <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                    </svg>
+                </div>
+                <span>EduPredict <span style="color: #818cf8; font-weight: 500;">AI</span></span>
+            </a>
+
+            {% if current_user.is_authenticated %}
+                <ul class="nav-links">
+                    {% if current_user.role == "admin" %}
+                        <li>
+                            <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('predictor') }}" class="nav-link {% if request.endpoint == 'predictor' %}active{% endif %}">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
+                                AI Predictor
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('add_student') }}" class="nav-link {% if request.endpoint == 'add_student' %}active{% endif %}">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+                                Add Student
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('students') }}" class="nav-link {% if request.endpoint == 'students' %}active{% endif %}">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                All Students
+                            </a>
+                        </li>
+                    {% else %}
+                        <li>
+                            <a href="{{ url_for('student_dashboard') }}" class="nav-link {% if request.endpoint == 'student_dashboard' %}active{% endif %}">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                                My Performance
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('predictor') }}" class="nav-link {% if request.endpoint == 'predictor' %}active{% endif %}">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
+                                AI Simulator
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+
+                <div class="user-menu">
+                    <div class="user-badge">
+                        <div class="user-avatar">{{ current_user.name[0]|upper }}</div>
+                        <div class="user-info-text">
+                            <div class="user-name">{{ current_user.name }}</div>
+                            <span class="role-tag {{ current_user.role }}">{{ current_user.role }}</span>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('logout') }}" class="nav-btn-logout">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                        Logout
+                    </a>
+                </div>
+            {% else %}
+                <div class="user-menu">
+                    <a href="{{ url_for('login') }}" class="btn btn-secondary" style="color: white; border-color: rgba(255,255,255,0.2); background: transparent;">Login</a>
+                    <a href="{{ url_for('signup') }}" class="btn btn-primary">Get Started</a>
+                </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Main Content Body -->
+    <main class="main-wrapper">
+        <!-- Flash Message Alerts -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-container">
+                    {% for category, message in messages %}
+                        <div class="flash-alert {{ category }}">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                {% if category == 'success' %}
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                {% else %}
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                                {% endif %}
+                                <span>{{ message }}</span>
+                            </div>
+                            <button class="flash-close-btn" onclick="this.parentElement.remove();">&times;</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- App Footer -->
+    <footer>
+        <div class="footer-content">
+            <div>
+                <strong>EduPredict AI</strong> &mdash; Student Pass/Fail Prediction & Management System
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="footer-status-pill">
+                    <span class="status-online-dot"></span> ML Model v1.0 Active
+                </span>
+                <span class="footer-status-pill">
+                    <span class="status-online-dot"></span> MongoDB Online
+                </span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Client Interactive JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

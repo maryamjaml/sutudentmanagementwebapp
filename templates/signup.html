@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | EduPredict AI</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-page">
+
+    <div class="auth-card" style="max-width: 480px;">
+        <div class="auth-header">
+            <div class="logo-badge">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <polyline points="16 11 18 13 22 9"/>
+                </svg>
+            </div>
+            <h1>Create Account</h1>
+            <p>Select your role to register for the AI portal</p>
+        </div>
+
+        <!-- Flash messages inside auth card -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-container">
+                    {% for category, message in messages %}
+                        <div class="flash-alert {{ category }}">
+                            <span>{{ message }}</span>
+                            <button class="flash-close-btn" onclick="this.parentElement.remove();">&times;</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('signup') }}">
+            <!-- Role Selection Toggle -->
+            <label class="form-label" style="text-align: center; margin-bottom: 8px;">Select Account Role</label>
+            <div class="role-selector-toggle">
+                <label class="role-radio-label active" id="label-role-student">
+                    <input type="radio" name="role" value="student" checked>
+                    🎓 Student
+                </label>
+                <label class="role-radio-label" id="label-role-admin">
+                    <input type="radio" name="role" value="admin">
+                    🛡️ Admin / Faculty
+                </label>
+            </div>
+
+            <!-- Admin Passcode Field (Hidden by default, shown if Admin selected) -->
+            <div class="form-group" id="admin-code-group" style="display: none; background: #fffbeb; border: 1px solid #fde68a; padding: 14px; border-radius: var(--radius-md);">
+                <label class="form-label" for="admin_code" style="color: #92400e;">
+                    Admin Security Passcode
+                    <span class="sub" style="color: #b45309;">(Required for administrative registration)</span>
+                </label>
+                <input 
+                    type="password" 
+                    id="admin_code" 
+                    name="admin_code" 
+                    class="form-control" 
+                    placeholder="Enter admin passcode from .env"
+                >
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="name">Full Name</label>
+                <input 
+                    type="text" 
+                    id="name" 
+                    name="name" 
+                    class="form-control" 
+                    placeholder="e.g. Maryam Jamal or Ali Khan" 
+                    maxlength="100" 
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    class="form-control" 
+                    placeholder="name@university.edu" 
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    class="form-control" 
+                    placeholder="At least 8 characters" 
+                    minlength="8" 
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="confirm_password">Confirm Password</label>
+                <input 
+                    type="password" 
+                    id="confirm_password" 
+                    name="confirm_password" 
+                    class="form-control" 
+                    placeholder="Re-enter password" 
+                    minlength="8" 
+                    required
+                >
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 24px;">
+                Complete Registration
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 24px; font-size: 0.9rem; color: var(--gray-500);">
+            Already have an account? 
+            <a href="{{ url_for('login') }}" style="font-weight: 600; color: var(--primary);">Sign In</a>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
